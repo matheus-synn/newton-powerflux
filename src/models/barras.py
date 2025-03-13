@@ -87,24 +87,33 @@ class Barra():
         return f"({self.indx+1})\t[{round(self.vb,r)} {round(self.ab,r)} {round(self.spq.real,r)} {round(self.spq.imag,r)}]"
 
     def vaiPQ(self):
+        bola = False
         if self.tipo == 1: 
             qb = self.spq.imag
             ql = self.rngQ
-            if (qb < ql[0]) or (qb > ql[1]): self.tipo = 0
+            if (qb < ql[0]) or (qb > ql[1]): 
+                bola = True
+                self.tipo = 0
             if qb < ql[0]: qb = ql[0]
             if qb > ql[1]: qb = ql[1]
             self.spq = self.spq.real +1j*qb
-        pass
+        return bola
 
-    def vaiPV(self):
+    def voltaPV(self):
+        bola = False
         if self.tipo == 0 and self.tpo == 1:
+            bola = True
             qb = self.spq.imag
             ql = self.rngQ
-            if (qb > ql[0]) and (self.vb > self.vesp):
+            if (qb == ql[0]) and (self.vb < self.vesp):
                 self.tipo = 1
-            if (qb < ql[1]) and (self.vb < self.vesp):
+                bola = False
+                self.vb = self.vesp
+            if (qb == ql[1]) and (self.vb > self.vesp):
                 self.tipo = 1
-        pass
+                bola = False
+                self.vb = self.vesp
+        return bola
 
 
 class Barras():
@@ -127,10 +136,13 @@ class Barras():
         return nBar
     
     def controlar(self):
+        out = True
         for barra in self.bars:
-            barra.vaiPQ()
-            barra.vaiPV()
-        pass
+            pq = barra.vaiPQ()
+            pv = barra.voltaPV()
+            p  = not (pq or pv)
+            out =  p and out
+        return out
 
     def __str__(self,r=1):
         tx = ''
